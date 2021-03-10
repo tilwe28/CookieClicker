@@ -6,6 +6,7 @@ import androidx.constraintlayout.widget.ConstraintSet;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.media.Image;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -17,13 +18,13 @@ public class MainActivity extends AppCompatActivity {
 
     ConstraintLayout layout_main;
     LinearLayout layout_store, layout_upgrades;
-    ImageView iv_pizza, iv_cursor, iv_oven;
+    ImageView iv_pizza, iv_cursor, iv_oven, iv_oven2x;
     static TextView tv_score;
     TextView tv_store;
     TextView tv_upgrades;
 
-    static int count_clicks=0, passive=0,count_tv=0;
-    boolean upgrade_cursor=false, upgrade_oven=false;
+    static int count_clicks=0, passive=0;
+    boolean upgrade_cursor=false, upgrade_oven=false, upgrade_oven2x=false;
 
 
     private Context context;
@@ -43,14 +44,18 @@ public class MainActivity extends AppCompatActivity {
         iv_pizza = findViewById(R.id.imageView_pizza);
         iv_cursor = findViewById(R.id.imageView_cursor);
         iv_oven = findViewById(R.id.imageView_oven);
+        iv_oven2x = findViewById(R.id.imageView_oven2x);
         tv_score = findViewById(R.id.textView_score);
         tv_store = findViewById(R.id.textView_store);
         tv_upgrades = findViewById(R.id.textView_upgrades);
-        count_tv++;
 
         iv_pizza.setImageResource(R.drawable.pizza_circle);
         iv_pizza.setScaleX(.75f);
         iv_pizza.setScaleY(.75f);
+
+        iv_cursor.setClickable(false);
+        iv_oven.setClickable(false);
+        iv_oven2x.setClickable(false);
 
         tv_store.setText(Html.fromHtml("<u>"+"Store"+"</u>"));
         tv_upgrades.setText(Html.fromHtml("<u>"+"Upgrades"+"</u>"));
@@ -72,12 +77,28 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Log.d("COUNT", "Clicks: " + count_clicks);
 
-                if (count_clicks>=10) {
+                if (count_clicks>=10 && !upgrade_cursor) {
                     iv_cursor.setAlpha(1.0f);
                     iv_cursor.setClickable(true);
-                } else {
+                } else if (!upgrade_cursor){
                     iv_cursor.setAlpha(0.35f);
                     iv_cursor.setClickable(false);
+                }
+
+                if (count_clicks>=20 && !upgrade_oven) {
+                    iv_oven.setAlpha(1.0f);
+                    iv_oven.setClickable(true);
+                } else if (!upgrade_oven){
+                    iv_oven.setAlpha(0.35f);
+                    iv_oven.setClickable(false);
+                }
+
+                if (count_clicks>=50 && upgrade_oven && !upgrade_oven2x) {
+                    iv_oven2x.setAlpha(1.0f);
+                    iv_oven2x.setClickable(true);
+                } else if (!upgrade_oven2x){
+                    iv_oven2x.setAlpha(0.35f);
+                    iv_oven2x.setClickable(false);
                 }
             }
         });
@@ -85,15 +106,50 @@ public class MainActivity extends AppCompatActivity {
         iv_cursor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("ANIMATION", "Cursor upgrade");
                 if (count_clicks>=10) {
                     upgrade_cursor = true;
                     minusCount(10);
-                    if (count_clicks>=10) {
-                        iv_cursor.setAlpha(1.0f);
-                    } else {
-                        iv_cursor.setAlpha(0.35f);
-                        iv_cursor.setClickable(false);
-                    }
+
+                    upgradeSelectedAnimation(iv_cursor);
+
+                    if (layout_store.getChildCount() < 3)
+                        layout_store.setWeightSum(0.66f);
+
+                    v.setClickable(false);
+                }
+            }
+        });
+        iv_oven.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("ANIMATION", "Oven upgrade");
+                if (count_clicks>=20) {
+                    upgrade_oven = true;
+                    minusCount(20);
+
+                    upgradeSelectedAnimation(v);
+
+                    if (layout_store.getChildCount() < 3)
+                        layout_store.setWeightSum(0.66f);
+
+                    v.setClickable(false);
+
+                }
+            }
+        });
+        iv_oven2x.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("ANIMATION", "Oven2x upgrade");
+                if (count_clicks>=50) {
+                    upgrade_oven2x = true;
+                    minusCount(50);
+
+                    upgradeSelectedAnimation(v);
+
+                    v.setClickable(false);
+
                 }
             }
         });
@@ -115,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
         tv_plusOne.setTextSize(18);
         tv_plusOne.setId(View.generateViewId());
         tv_plusOne.setLayoutParams(wrapContentParams);
-        count_tv++;
         layout_main.addView(tv_plusOne);
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(layout_main);
@@ -126,30 +181,28 @@ public class MainActivity extends AppCompatActivity {
 
         float rHoriz = (float)(Math.random());
         float rVert = (float)(Math.random());
-        Log.d("ANIMATION", count_tv+": tv_plusOne set at ("+rHoriz+", "+rVert+")");
+        Log.d("ANIMATION", "tv_plusOne set at ("+rHoriz+", "+rVert+")");
         constraintSet.setHorizontalBias(tv_plusOne.getId(), rHoriz);
         constraintSet.setVerticalBias(tv_plusOne.getId(), rVert);
         constraintSet.applyTo(layout_main);
+        Log.d("ANIMATION", "View added:" + layout_main.getChildCount());
 
         tv_plusOne.startAnimation(animationSet);
-        movesUp.setAnimationListener(new Animation.AnimationListener() {
+        animationSet.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-                Log.d("ANIMATION", count_tv+": movesUp onStart");
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                Log.d("ANIMATION", count_tv+": movesUp onEnd");
                 layout_main.post(new Runnable() {
                     @Override
                     public void run() {
                         mainActivity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Log.d("ANIMATION", count_tv+": tv_plusOne removed");
+                                Log.d("ANIMATION", "View removed:" + layout_main.getChildCount());
                                 layout_main.removeView(tv_plusOne);
-                                count_tv--;
                             }
                         });
                     }
@@ -161,20 +214,54 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        fadeOut.setAnimationListener(new Animation.AnimationListener() {
+    }
+
+    public void upgradeSelectedAnimation(View v) {
+        View tempView = v;
+        final Animation fadeOut = new AlphaAnimation(1.0f, 0.01f);
+        final RotateAnimation spin = new RotateAnimation(0.0f, 360.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        fadeOut.setDuration(1000);
+        spin.setDuration(250);
+        spin.setRepeatCount(3);
+
+        AnimationSet animationSet = new AnimationSet(false);
+        animationSet.addAnimation(fadeOut);
+        animationSet.addAnimation(spin);
+
+        v.startAnimation(animationSet);
+        animationSet.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
-                Log.d("ANIMATION", count_tv+": fadeOut onStart");
             }
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                Log.d("ANIMATION", count_tv+": fadeOut onEnd");
+                layout_store.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mainActivity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (iv_cursor.equals(v)) {
+                                    layout_store.removeView(iv_cursor);
+                                } else if (iv_oven.equals(v)) {
+                                    layout_store.removeView(iv_oven);
+                                } else if (iv_oven2x.equals(v)) {
+                                    layout_store.removeView(iv_oven2x);
+                                }
+                                Log.d("ANIMATION", "StoreLayout - View removed:" + layout_store.getChildCount());
+                                layout_upgrades.addView(tempView);
+                            }
+                        });
+
+                        if (layout_store.getChildCount() < 3)
+                            layout_store.setWeightSum(0.66f);
+                    }
+                });
             }
 
             @Override
             public void onAnimationRepeat(Animation animation) {
-
             }
         });
     }

@@ -97,7 +97,7 @@
             android:id="@+id/imageView_cursor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight=".5"
+            android:layout_weight=".33"
             android:alpha=".35"
             android:clickable="false"
             app:srcCompat="@drawable/cursor"
@@ -107,11 +107,21 @@
             android:id="@+id/imageView_oven"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight=".5"
+            android:layout_weight=".33"
             android:alpha=".35"
             android:clickable="false"
             app:srcCompat="@drawable/oven"
             tools:srcCompat="@drawable/oven" />
+
+        <ImageView
+            android:id="@+id/imageView_oven2x"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight=".33"
+            android:alpha=".35"
+            android:clickable="false"
+            app:srcCompat="@drawable/oven2x"
+            tools:srcCompat="@drawable/oven2x" />
     </LinearLayout>
 
     <LinearLayout
