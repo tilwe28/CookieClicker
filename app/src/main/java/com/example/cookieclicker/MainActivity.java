@@ -4,15 +4,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.media.Image;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.*;
 import android.widget.*;
+
+import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     static int count_clicks=0, passive=0;
     boolean upgrade_cursor=false, upgrade_oven=false, upgrade_oven2x=false;
 
+    PassiveIncomeThread ovenUpgrade;
 
     private Context context;
     final MainActivity mainActivity = MainActivity.this;
@@ -75,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                     addCount(2);
                     plusOneAnimation("+2");
                 }
+                tv_score.setText("Pizzas: " + count_clicks);
                 Log.d("COUNT", "Clicks: " + count_clicks);
 
                 if (count_clicks>=10 && !upgrade_cursor) {
@@ -135,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
 
                     v.setClickable(false);
 
+                    ovenUpgrade = new PassiveIncomeThread(5);
+                    ovenUpgrade.start();
                 }
             }
         });
@@ -150,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
 
                     v.setClickable(false);
 
+                    ovenUpgrade.setNum(10);
                 }
             }
         });
@@ -219,10 +228,12 @@ public class MainActivity extends AppCompatActivity {
     public void upgradeSelectedAnimation(View v) {
         View tempView = v;
         final Animation fadeOut = new AlphaAnimation(1.0f, 0.01f);
+        final Animation fadeIn = new AlphaAnimation(0.0f, 1.0f);
         final RotateAnimation spin = new RotateAnimation(0.0f, 360.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-        fadeOut.setDuration(1000);
+        fadeOut.setDuration(500);
+        fadeIn.setDuration(500);
         spin.setDuration(250);
-        spin.setRepeatCount(3);
+        spin.setRepeatCount(2);
 
         AnimationSet animationSet = new AnimationSet(false);
         animationSet.addAnimation(fadeOut);
@@ -266,9 +277,39 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public class PassiveIncomeThread extends Thread {
+        int num;
+
+        public PassiveIncomeThread(int num) {
+            this.num = num;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                addCount(num);
+                mainActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tv_score.setText("Pizzas: " + count_clicks);
+                    }
+                });
+            }
+        }
+
+        public void setNum(int num) {
+            this.num = num;
+        }
+    }
+
     public static synchronized void addCount(int num) {
         count_clicks+=num;
-        tv_score.setText("Pizzas: " + count_clicks);
+        //tv_score.setText("Pizzas: " + count_clicks);
     }
 
     public static synchronized void minusCount(int num) {
