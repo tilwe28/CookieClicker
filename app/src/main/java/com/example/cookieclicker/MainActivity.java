@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tv_store;
     TextView tv_upgrades;
 
-    static int count_clicks=0, passive=0;
+    static int count_clicks=0;
     boolean upgrade_cursor=false, upgrade_oven=false, upgrade_oven2x=false;
 
     PassiveIncomeThread ovenUpgrade;
@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
                     plusOneAnimation("+2");
                 }
                 tv_score.setText("Pizzas: " + count_clicks);
-                Log.d("COUNT", "Clicks: " + count_clicks);
 
                 if (count_clicks>=10 && !upgrade_cursor) {
                     iv_cursor.setAlpha(1.0f);
@@ -262,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 Log.d("ANIMATION", "StoreLayout - View removed:" + layout_store.getChildCount());
                                 layout_upgrades.addView(tempView);
+                                Log.d("ANIMATION", "UpgradeLayout - View added:" + layout_upgrades.getChildCount());
                             }
                         });
 
@@ -309,11 +309,11 @@ public class MainActivity extends AppCompatActivity {
 
     public static synchronized void addCount(int num) {
         count_clicks+=num;
-        //tv_score.setText("Pizzas: " + count_clicks);
+        Log.d("COUNT", "Clicks: " + count_clicks);
     }
 
     public static synchronized void minusCount(int num) {
         count_clicks-=num;
-        tv_score.setText("Pizzas: " + count_clicks);
+        Log.d("COUNT", "Clicks: " + count_clicks);;
     }
 }
