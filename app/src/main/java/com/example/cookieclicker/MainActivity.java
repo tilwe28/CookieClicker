@@ -22,13 +22,11 @@ public class MainActivity extends AppCompatActivity {
 
     ConstraintLayout layout_main;
     LinearLayout layout_store, layout_upgrades;
-    ImageView iv_pizza, iv_cursor, iv_oven, iv_oven2x;
-    static TextView tv_score;
-    TextView tv_store;
-    TextView tv_upgrades;
+    static ImageView iv_pizza, iv_cursor, iv_oven, iv_oven2x;
+    static TextView tv_score, tv_store, tv_upgrades;
 
     static int count_clicks=0;
-    boolean upgrade_cursor=false, upgrade_oven=false, upgrade_oven2x=false;
+    static boolean upgrade_cursor=false, upgrade_oven=false, upgrade_oven2x=false;
 
     PassiveIncomeThread ovenUpgrade;
 
@@ -82,29 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 tv_score.setText("Pizzas: " + count_clicks);
 
-                if (count_clicks>=10 && !upgrade_cursor) {
-                    iv_cursor.setAlpha(1.0f);
-                    iv_cursor.setClickable(true);
-                } else if (!upgrade_cursor){
-                    iv_cursor.setAlpha(0.35f);
-                    iv_cursor.setClickable(false);
-                }
-
-                if (count_clicks>=20 && !upgrade_oven) {
-                    iv_oven.setAlpha(1.0f);
-                    iv_oven.setClickable(true);
-                } else if (!upgrade_oven){
-                    iv_oven.setAlpha(0.35f);
-                    iv_oven.setClickable(false);
-                }
-
-                if (count_clicks>=50 && upgrade_oven && !upgrade_oven2x) {
-                    iv_oven2x.setAlpha(1.0f);
-                    iv_oven2x.setClickable(true);
-                } else if (!upgrade_oven2x){
-                    iv_oven2x.setAlpha(0.35f);
-                    iv_oven2x.setClickable(false);
-                }
+                checkUpgrades();
             }
         });
 
@@ -115,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
                 if (count_clicks>=10) {
                     upgrade_cursor = true;
                     minusCount(10);
+                    tv_score.setText("Pizzas: " + count_clicks);
+                    checkUpgrades();
 
                     upgradeSelectedAnimation(iv_cursor);
 
@@ -132,6 +110,8 @@ public class MainActivity extends AppCompatActivity {
                 if (count_clicks>=20) {
                     upgrade_oven = true;
                     minusCount(20);
+                    tv_score.setText("Pizzas: " + count_clicks);
+                    checkUpgrades();
 
                     upgradeSelectedAnimation(v);
 
@@ -152,6 +132,8 @@ public class MainActivity extends AppCompatActivity {
                 if (count_clicks>=50) {
                     upgrade_oven2x = true;
                     minusCount(50);
+                    tv_score.setText("Pizzas: " + count_clicks);
+                    checkUpgrades();
 
                     upgradeSelectedAnimation(v);
 
@@ -164,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void plusOneAnimation(CharSequence charSequence) {
-        final TranslateAnimation movesUp = new TranslateAnimation(Animation.RELATIVE_TO_PARENT, 0.0f, Animation.RELATIVE_TO_PARENT, 0.0f, Animation.RELATIVE_TO_PARENT, 0.0f, Animation.RELATIVE_TO_PARENT, -0.3f);
+        final TranslateAnimation movesUp = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, -5.0f);
         final Animation fadeOut = new AlphaAnimation(1.0f, 0.01f);
         movesUp.setDuration(1000);
         fadeOut.setDuration(1000);
@@ -203,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                layout_main.post(new Runnable() {
+                tv_plusOne.post(new Runnable() {
                     @Override
                     public void run() {
                         mainActivity.runOnUiThread(new Runnable() {
@@ -297,6 +279,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         tv_score.setText("Pizzas: " + count_clicks);
+                        checkUpgrades();
                     }
                 });
             }
@@ -307,6 +290,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void checkUpgrades() {
+        if (count_clicks>=10 && !upgrade_cursor) {
+            iv_cursor.setAlpha(1.0f);
+            iv_cursor.setClickable(true);
+        } else if (!upgrade_cursor){
+            iv_cursor.setAlpha(0.35f);
+            iv_cursor.setClickable(false);
+        }
+
+        if (count_clicks>=20 && !upgrade_oven) {
+            iv_oven.setAlpha(1.0f);
+            iv_oven.setClickable(true);
+        } else if (!upgrade_oven){
+            iv_oven.setAlpha(0.35f);
+            iv_oven.setClickable(false);
+        }
+
+        if (count_clicks>=50 && upgrade_oven && !upgrade_oven2x) {
+            iv_oven2x.setAlpha(1.0f);
+            iv_oven2x.setClickable(true);
+        } else if (!upgrade_oven2x){
+            iv_oven2x.setAlpha(0.35f);
+            iv_oven2x.setClickable(false);
+        }
+    }
+
     public static synchronized void addCount(int num) {
         count_clicks+=num;
         Log.d("COUNT", "Clicks: " + count_clicks);
@@ -314,6 +323,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static synchronized void minusCount(int num) {
         count_clicks-=num;
-        Log.d("COUNT", "Clicks: " + count_clicks);;
+        Log.d("COUNT", "Clicks: " + count_clicks);
     }
 }
