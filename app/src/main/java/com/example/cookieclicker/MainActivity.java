@@ -1,9 +1,11 @@
 package com.example.cookieclicker;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -22,8 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
     ConstraintLayout layout_main;
     LinearLayout layout_store, layout_upgrades;
-    static ImageView iv_pizza, iv_cursor, iv_oven, iv_oven2x;
-    static TextView tv_score, tv_store, tv_upgrades;
+    ImageView iv_pizza, iv_cursor, iv_oven, iv_oven2x;
+    TextView tv_score, tv_store, tv_upgrades;
 
     static int count_clicks=0;
     static boolean upgrade_cursor=false, upgrade_oven=false, upgrade_oven2x=false;
@@ -36,8 +38,23 @@ public class MainActivity extends AppCompatActivity {
     ConstraintLayout.LayoutParams wrapContentParams = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
 
     @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("SCORE", count_clicks);
+        Log.d("TAG", "onSaveInstanceState");
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        count_clicks = savedInstanceState.getInt("SCORE");
+        Log.d("TAG", "onRestoreInstanceState");
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("TAG", "onCreate");
         setContentView(R.layout.activity_main);
         context = this;
 
@@ -62,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
 
         tv_store.setText(Html.fromHtml("<u>"+"Store"+"</u>"));
         tv_upgrades.setText(Html.fromHtml("<u>"+"Upgrades"+"</u>"));
+
+        tv_score.setText("Pizzas: " + count_clicks);
 
         iv_pizza.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -155,12 +174,14 @@ public class MainActivity extends AppCompatActivity {
         animationSet.addAnimation(movesUp);
         animationSet.addAnimation(fadeOut);
 
+        ConstraintLayout.LayoutParams localLayoutParams = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+
         TextView tv_plusOne = new TextView(context);
         tv_plusOne.setText(charSequence);
         tv_plusOne.setTextColor(Color.WHITE);
         tv_plusOne.setTextSize(18);
         tv_plusOne.setId(View.generateViewId());
-        tv_plusOne.setLayoutParams(wrapContentParams);
+        tv_plusOne.setLayoutParams(localLayoutParams);
         layout_main.addView(tv_plusOne);
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone(layout_main);
