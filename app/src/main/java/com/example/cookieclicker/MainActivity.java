@@ -1,29 +1,22 @@
 package com.example.cookieclicker;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.media.Image;
 import android.os.Bundle;
-import android.os.Looper;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.*;
 import android.widget.*;
 
-import java.util.Timer;
-
 public class MainActivity extends AppCompatActivity {
 
     ConstraintLayout layout_main;
-    LinearLayout layout_store, layout_upgrades;
+    LinearLayout layout_store, layout_upgrades, layout_clicker, layout_passive;
     ImageView iv_pizza, iv_cursor, iv_oven, iv_oven2x;
     TextView tv_score, tv_store, tv_upgrades;
 
@@ -35,22 +28,6 @@ public class MainActivity extends AppCompatActivity {
     private Context context;
     final MainActivity mainActivity = MainActivity.this;
 
-    ConstraintLayout.LayoutParams wrapContentParams = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-
-    @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt("SCORE", count_clicks);
-        Log.d("TAG", "onSaveInstanceState");
-    }
-
-    @Override
-    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        count_clicks = savedInstanceState.getInt("SCORE");
-        Log.d("TAG", "onRestoreInstanceState");
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,9 +35,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         context = this;
 
+        ovenUpgrade = new PassiveIncomeThread(0);
+        ovenUpgrade.start();
+
         layout_main = findViewById(R.id.layout_constraint);
         layout_store = findViewById(R.id.linearLayout_store);
         layout_upgrades = findViewById(R.id.linearLayout_upgrades);
+        layout_clicker = findViewById(R.id.linearLayout_clicker);
+        layout_passive = findViewById(R.id.linearLayout_passive);
         iv_pizza = findViewById(R.id.imageView_pizza);
         iv_cursor = findViewById(R.id.imageView_cursor);
         iv_oven = findViewById(R.id.imageView_oven);
@@ -78,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         iv_oven2x.setClickable(false);
 
         tv_store.setText(Html.fromHtml("<u>"+"Store"+"</u>"));
-        tv_upgrades.setText(Html.fromHtml("<u>"+"Upgrades"+"</u>"));
+        tv_upgrades.setText(Html.fromHtml("<u>"+"Upgrades Bought"+"</u>"));
 
         tv_score.setText("Pizzas: " + count_clicks);
 
@@ -113,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                     tv_score.setText("Pizzas: " + count_clicks);
                     checkUpgrades();
 
-                    upgradeSelectedAnimation(iv_cursor);
+                    clickerUpgrade(iv_cursor);
 
                     if (layout_store.getChildCount() < 3)
                         layout_store.setWeightSum(0.66f);
@@ -132,15 +114,13 @@ public class MainActivity extends AppCompatActivity {
                     tv_score.setText("Pizzas: " + count_clicks);
                     checkUpgrades();
 
-                    upgradeSelectedAnimation(v);
+                    passiveUpgrade(iv_oven);
 
                     if (layout_store.getChildCount() < 3)
                         layout_store.setWeightSum(0.66f);
 
-                    v.setClickable(false);
-
-                    ovenUpgrade = new PassiveIncomeThread(5);
-                    ovenUpgrade.start();
+                    checkUpgrades();
+                    ovenUpgrade.setNum(5);
                 }
             }
         });
@@ -154,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                     tv_score.setText("Pizzas: " + count_clicks);
                     checkUpgrades();
 
-                    upgradeSelectedAnimation(v);
+                    layout_store.removeView(v);
 
                     v.setClickable(false);
 
@@ -227,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void upgradeSelectedAnimation(View v) {
+    public void clickerUpgrade(View v) {
         View tempView = v;
         final Animation fadeOut = new AlphaAnimation(1.0f, 0.01f);
         final Animation fadeIn = new AlphaAnimation(0.0f, 1.0f);
@@ -263,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
                                     layout_store.removeView(iv_oven2x);
                                 }
                                 Log.d("ANIMATION", "StoreLayout - View removed:" + layout_store.getChildCount());
-                                layout_upgrades.addView(tempView);
+                                layout_clicker.addView(tempView);
                                 Log.d("ANIMATION", "UpgradeLayout - View added:" + layout_upgrades.getChildCount());
                             }
                         });
@@ -278,6 +258,28 @@ public class MainActivity extends AppCompatActivity {
             public void onAnimationRepeat(Animation animation) {
             }
         });
+    }
+
+    public void passiveUpgrade(ImageView iv) {
+        LinearLayout.LayoutParams localLayoutParams = new LinearLayout.LayoutParams(150, LinearLayout.LayoutParams.WRAP_CONTENT);
+        ImageView iv_passive = new ImageView(context);
+        iv_passive.setImageResource(R.drawable.oven);
+        iv_passive.setId(View.generateViewId());
+        iv_passive.setLayoutParams(localLayoutParams);
+        layout_passive.addView(iv_passive);
+
+        final Animation fadeIn = new AlphaAnimation(0.0f, 1.0f);
+        final RotateAnimation spin = new RotateAnimation(0.0f, 360.0f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        fadeIn.setDuration(500);
+        spin.setDuration(250);
+        spin.setRepeatCount(2);
+
+        AnimationSet animationSet = new AnimationSet(false);
+        animationSet.addAnimation(fadeIn);
+        animationSet.addAnimation(spin);
+
+        checkUpgrades();
+        iv_passive.startAnimation(animationSet);
     }
 
     public class PassiveIncomeThread extends Thread {
@@ -295,7 +297,8 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                addCount(num);
+                for (int i=0; i<layout_passive.getChildCount(); i++)
+                    addCount(num);
                 mainActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -320,10 +323,10 @@ public class MainActivity extends AppCompatActivity {
             iv_cursor.setClickable(false);
         }
 
-        if (count_clicks>=20 && !upgrade_oven) {
+        if (count_clicks>=20) {
             iv_oven.setAlpha(1.0f);
             iv_oven.setClickable(true);
-        } else if (!upgrade_oven){
+        } else {
             iv_oven.setAlpha(0.35f);
             iv_oven.setClickable(false);
         }
